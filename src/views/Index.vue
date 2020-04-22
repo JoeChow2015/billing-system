@@ -1,14 +1,15 @@
 <template>
   <div class="the-home-container">
     <div class="header-box">
-      <h1>账单管理系统</h1>
+      <h1><i class="el-icon-s-home"></i> 账单管理系统</h1>
+      <span class="time">{{ currentTime }}</span>
     </div>
     <el-row class="content-box">
       <el-col :span="3">
         <el-menu
           default-active="2"
           class="el-menu-vertical"
-          background-color="#545c64"
+          background-color="#6C7B8B"
           text-color="#fff"
           active-text-color="#fff"
           collapse-transition	>
@@ -32,7 +33,6 @@
     </el-row>
     <div class="footer-box">
       &copy;2020 版权所有 2+1软件工作室（上海）提供技术支持
-      <span class="time">{{ currentTime }}</span>
     </div>
   </div>
 </template>
@@ -76,15 +76,21 @@ export default {
     display: flex;
     flex-direction: column;
     .header-box {
-      background-color: @bg-color;
-      height: 70px;
-      line-height: 70px;
+      background: linear-gradient(#409eff, #033967);
+      height: 60px;
+      line-height: 60px;
       color: @text-color;
       user-select: none;
       text-align: left;
-      padding: 0 20px;
+      padding: 0 20px 0 10px;
       font-family: Arial, Helvetica, sans-serif;
       border-bottom: 2px solid@bd-color;
+      position: relative;
+      .time {
+        position: absolute;
+        top: 0;
+        right: 20px;
+      }
     }
     .content-box {
       .el-menu-vertical {
@@ -93,6 +99,9 @@ export default {
         border-right: 2px solid @bd-color;
         .el-menu-item {
           min-width: unset;
+          i {
+            color: #fff;
+          }
         }
         .el-menu-item.is-active {
           background-color: @bg-color !important;
@@ -100,17 +109,12 @@ export default {
       }
     }
     .footer-box {
-      background-color: @bg-color;
-      height: 40px;
-      line-height: 40px;
+      background: linear-gradient(#409eff, #033967);
+      height: 30px;
+      line-height: 30px;
       text-align: center;
       color: @text-color;
       user-select: none;
-      position: relative;
-      .time {
-        position: absolute;
-        right: 20px;
-      }
     }
   }
 </style>
