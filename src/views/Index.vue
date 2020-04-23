@@ -133,6 +133,10 @@ export default {
       }
     }
     .footer-box {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
       background: linear-gradient(#409eff, #033967);
       height: 30px;
       line-height: 30px;

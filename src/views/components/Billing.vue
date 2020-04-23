@@ -5,7 +5,6 @@
         <span class="label">日期</span>
         <el-date-picker
           v-model="filter.date"
-          size="mini"
           type="daterange"
           clearable
           range-separator="~"
@@ -18,7 +17,6 @@
         <span class="label">寄件公司</span>
         <el-select
           v-model="filter.company"
-          size="mini"
           clearable
           placeholder="请选择">
           <el-option label="全部" value="0"></el-option>
@@ -34,7 +32,6 @@
         <span class="label">省份</span>
         <el-select
           v-model="filter.address"
-          size="mini"
           clearable
           placeholder="请选择">
           <el-option label="全部" value="0"></el-option>
@@ -50,7 +47,6 @@
         <span class="label">支付方式</span>
         <el-select
           v-model="filter.payType"
-          size="mini"
           clearable
           placeholder="请选择">
           <el-option label="全部" value="0"></el-option>
@@ -65,132 +61,118 @@
     </el-row>
     <el-row class="table-box">
       <el-col class="btn-action">
+        <el-button type="text" @click="newLine">插入一行</el-button>
         <el-button type="primary" size="mini" icon="el-icon-plus">新增客户</el-button>
         <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
         <el-button type="primary" size="mini" icon="el-icon-download">导出账单</el-button>
       </el-col>
       <el-table
-       :data="dataList"
+       :data="tableListComputed"
        size="mini"
        border
-       v-loading="isLoading"
+       v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
-       header-cell-class-name="table-header-custom">
+       header-cell-class-name="table-header-custom"
+       :height="tableHeight"
+       ref="billingTable">
        <el-table-column
-         prop=""
-         label="寄件日期">
+         prop="date"
+         label="寄件日期"
+         width="85">
        </el-table-column>
        <el-table-column
-          prop=""
-          label="运单号">
+          prop="ID"
+          label="运单号"
+          width="80">
        </el-table-column>
        <el-table-column
-         prop=""
+         prop="company"
          label="寄件公司"/>
-       <!-- <el-table-column
-         label="示例">
-         <template slot-scope="scope">
-           <div class="editable-cell">
-             <div class="editable-cell-text-wrapper">
-               <template v-if="!editCache.sampleData[scope.$index].edit">
-                  {{ scope.row.sampleData }}
-                  <a v-if="hasEdit" @click.prevent="startEdit('sampleData', scope.$index)"><i class="el-icon-edit"></i></a>
-               </template>
-               <template v-if="editCache.sampleData[scope.$index].edit">
-                  <el-input
-                    size="small"
-                    v-model="editCache.sampleData[scope.$index].data"
-                    @keyup.enter.native="finishEdit('sampleData', scope.$index)">
-                  </el-input>
-                  <a @click.prevent="finishEdit('sampleData', scope.$index)"><i class="el-icon-check"></i></a>
-               </template>
-             </div>
-           </div>
-         </template>
-       </el-table-column> -->
         <el-table-column
-         prop=""
+         prop="address"
          label="目的网点"
-         width="70"/>
+         width="60"/>
         <el-table-column
-         prop=""
+         prop="province"
          label="省份"
-         width="50"/>
+         width="60"/>
         <el-table-column
-         prop=""
+         prop="customer"
          label="收件客户"
          width="70"/>
         <el-table-column
-         prop=""
+         prop="count"
          label="件数"
          width="50"/>
         <el-table-column
-         prop=""
-         label="重量/体积"/>
+         prop="weight"
+         label="重量/体积"
+         width="70"/>
         <el-table-column
-         prop=""
+         prop="protectedPrice"
          label="保价费"
-         width="60"/>
+         width="50"/>
         <el-table-column
-         prop=""
+         prop="price"
          label="单价"
-         width="60"/>
+         width="50"/>
         <el-table-column
-          prop=""
+          prop="priceType"
           label="计费方式"
-          width="70"/>
+          width="60"/>
         <el-table-column
-          prop=""
+          prop="extra"
           label="附加费"
-          width="60"/>
+          width="50"/>
         <el-table-column
-          prop=""
+          prop="payType"
           label="支付方式"
-          width="70"/>
+          width="60"/>
         <el-table-column
-          prop=""
+          prop="total"
           label="总金额"
-          width="70"/>
+          width="65"/>
         <el-table-column
-          prop=""
+          prop="cost"
           label="成本"
-          width="60"/>
+          width="55"/>
         <el-table-column
-          prop=""
+          prop="profit"
           label="利润"
-          width="60"/>
+          width="55"/>
         <el-table-column
-          prop=""
+          prop="comment"
           label="备注"
           show-overflow-tooltip/>
         <el-table-column
-          prop=""
           label="操作"
-          fixed="right"/>
-       <!-- <el-table-column
-         prop="comment"
-         label="备注" >
+          fixed="right"
+          width="100">
           <template slot-scope="scope">
-            <div class="editable-cell">
-              <div class="editable-cell-text-wrapper">
-                <template v-if="!editCache.comment[scope.$index].edit">
-                  {{ scope.row.comment }}
-                 <a v-if="hasEdit" @click.prevent="startEdit('comment', scope.$index)"><i class="el-icon-edit"></i></a>
-                </template>
-                <template v-if="editCache.comment[scope.$index].edit">
-                  <el-input
-                    size="small"
-                    v-model="editCache.comment[scope.$index].data"
-                    @keyup.enter.native="finishEdit('comment', scope.$index)">
-                  </el-input>
-                  <a @click.prevent="finishEdit('comment', scope.$index)"><i class="el-icon-check"></i></a>
-                </template>
-              </div>
-            </div>
+            <template v-if="scope.row.isEdit">
+              <i class="el-icon-check"></i>
+              <el-divider direction="vertical"></el-divider>
+              <i class="el-icon-close" @click="scope.row.isEdit = false"></i>
+              <el-divider direction="vertical"></el-divider>
+            </template>
+            <template v-else>
+              <i class="el-icon-edit" @click="scope.row.isEdit = true"></i>
+              <el-divider direction="vertical"></el-divider>
+            </template>
+            <i class="el-icon-delete"></i>
           </template>
-        </el-table-column> -->
-     </el-table>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        layout="total, prev, pager, next, sizes, jumper"
+        prev-text="上一页"
+        next-text="下一页"
+        :page-sizes="[15, 30, 50]"
+        :total="pagination.total"
+        @current-change="pageIndexChange"
+        @size-change="pageIndexChange"
+        hide-on-single-page	 />
     </el-row>
   </div>
 </template>
@@ -208,9 +190,77 @@ export default {
         address: '',
         payType: ''
       },
-      dataList: []
+      tableHeight: 100,
+      loading: false,
+      dataList: new Array(60).fill({
+        date: '2020-04-23',
+        ID: 123456,
+        company: 'qtt',
+        address: '浦东',
+        province: '内蒙古',
+        customer: '周星星',
+        count: 10,
+        weight: 30,
+        protectedPrice: 8,
+        price: 30,
+        priceType: '重量',
+        extra: '',
+        payType: '现金',
+        total: 200,
+        cost: 120,
+        profit: 70,
+        comment: '测试',
+        isEdit: false
+      }),
+      pagination: {
+        currentPage: 1,
+        pageSize: 15,
+        total: null
+      }
     }
   },
+  computed: {
+    tableListComputed () {
+      const { currentPage, pageSize } = this.pagination
+      return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    },
+  },
+  mounted () {
+    this.getTableHeight()
+    this.pagination.total = this.dataList.length
+  },
+  methods: {
+    getTableHeight () {
+      setTimeout(() => {
+        this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
+      }, 100)
+    },
+    pageIndexChange (e) {
+      this.pagination.currentPage = e
+    },
+    newLine () {
+      this.dataList.unshift({
+        date: '',
+        ID: '',
+        company: '',
+        address: '',
+        province: '',
+        customer: '',
+        count: '',
+        weight: '',
+        protectedPrice: '',
+        price: '',
+        priceType: '',
+        extra: '',
+        payType: '',
+        total: '',
+        cost: '',
+        profit: '',
+        comment: '',
+        isEdit: true
+      })
+    },
+  }
 }
 </script>
 
@@ -227,7 +277,7 @@ export default {
         flex: 1;
       }
       .el-date-editor {
-        width: 230px;
+        width: 250px;
       }
       .label {
         margin-right: 10px;
@@ -245,6 +295,21 @@ export default {
         color: #fff;
         border-right: 1px solid #c0c0c0;
       }
+      .el-table__body .cell {
+        font-size: 14px;
+        [class^=el-icon-] {
+          cursor: pointer;
+          color: #409eff;
+          font-size: 16px;
+        }
+      }
+      .el-table__header .cell, .el-table__body .cell {
+        padding: 0 5px;
+      }
+    }
+    .el-pagination {
+      margin-top: 10px;
+      text-align: right;
     }
   }
 </style>
