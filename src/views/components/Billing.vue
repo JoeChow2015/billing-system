@@ -18,6 +18,7 @@
         <el-select
           v-model="filter.company"
           clearable
+          filterable
           placeholder="请选择">
           <el-option label="全部" value="0"></el-option>
           <el-option
@@ -33,6 +34,7 @@
         <el-select
           v-model="filter.address"
           clearable
+          filterable
           placeholder="请选择">
           <el-option label="全部" value="0"></el-option>
           <el-option
@@ -76,82 +78,148 @@
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
        ref="billingTable">
-       <el-table-column
-         prop="date"
-         label="寄件日期"
-         width="85">
-       </el-table-column>
-       <el-table-column
-          prop="ID"
+        <el-table-column
+          label="寄件日期"
+          width="90">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.date"></el-input>
+            <span v-else>{{ scope.row.date }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
           label="运单号"
           width="80">
-       </el-table-column>
-       <el-table-column
-         prop="company"
-         label="寄件公司"/>
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.ID"></el-input>
+            <span v-else>{{ scope.row.ID }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="address"
-         label="目的网点"
-         width="60"/>
+          label="寄件公司">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.company"></el-input>
+            <span v-else>{{ scope.row.company }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="province"
          label="省份"
-         width="60"/>
+         width="60">
+         <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.province"></el-input>
+            <span v-else>{{ scope.row.province }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="customer"
-         label="收件客户"
-         width="70"/>
+          label="目的网点"
+          width="60">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.address"></el-input>
+            <span v-else>{{ scope.row.address }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="count"
-         label="件数"
-         width="50"/>
+          label="收件客户"
+          width="70">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customer"></el-input>
+            <span v-else>{{ scope.row.customer }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="weight"
-         label="重量/体积"
-         width="70"/>
+          label="件数"
+          width="50">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.count"></el-input>
+            <span v-else>{{ scope.row.count }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-         prop="protectedPrice"
-         label="保价费"
-         width="50"/>
+          label="重量/体积"
+          width="70">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.weight"></el-input>
+            <span v-else>{{ scope.row.weight }}</span>
+          </template>
+        </el-table-column>       
         <el-table-column
-         prop="price"
-         label="单价"
-         width="50"/>
+          label="保价费"
+          width="50">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.protectedPrice"></el-input>
+            <span v-else>{{ scope.row.protectedPrice }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="priceType"
+          label="单价"
+          width="50">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.price"></el-input>
+            <span v-else>{{ scope.row.price }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
           label="计费方式"
-          width="60"/>
+          width="60">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.priceType"></el-input>
+            <span v-else>{{ scope.row.priceType }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="extra"
           label="附加费"
-          width="50"/>
+          width="50">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.extra"></el-input>
+            <span v-else>{{ scope.row.extra }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="payType"
           label="支付方式"
-          width="60"/>
+          width="60">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.payType"></el-input>
+            <span v-else>{{ scope.row.payType }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="total"
           label="总金额"
-          width="65"/>
+          width="65">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.total"></el-input>
+            <span v-else>{{ scope.row.total }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="cost"
           label="成本"
-          width="55"/>
+          width="55">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.cost"></el-input>
+            <span v-else>{{ scope.row.cost }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="profit"
           label="利润"
-          width="55"/>
+          width="55">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.profit"></el-input>
+            <span v-else>{{ scope.row.profit }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="comment"
           label="备注"
-          show-overflow-tooltip/>
+          show-overflow-tooltip>
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.comment"></el-input>
+            <span v-else>{{ scope.row.comment }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           label="操作"
           fixed="right"
           width="100">
           <template slot-scope="scope">
             <template v-if="scope.row.isEdit">
-              <i class="el-icon-check"></i>
+              <i class="el-icon-check" @click="scope.row.isEdit = false"></i>
               <el-divider direction="vertical"></el-divider>
               <i class="el-icon-close" @click="scope.row.isEdit = false"></i>
               <el-divider direction="vertical"></el-divider>
@@ -192,7 +260,7 @@ export default {
       },
       tableHeight: 100,
       loading: false,
-      dataList: new Array(60).fill({
+      dataList: [{
         date: '2020-04-23',
         ID: 123456,
         company: 'qtt',
@@ -211,7 +279,26 @@ export default {
         profit: 70,
         comment: '测试',
         isEdit: false
-      }),
+      },{
+        date: '2020-04-24',
+        ID: 122,
+        company: 'qtt',
+        address: '浦东',
+        province: '内蒙古',
+        customer: '周星星',
+        count: 10,
+        weight: 30,
+        protectedPrice: 8,
+        price: 30,
+        priceType: '重量',
+        extra: '',
+        payType: '现金',
+        total: 200,
+        cost: 120,
+        profit: 70,
+        comment: '测试',
+        isEdit: false
+      }],
       pagination: {
         currentPage: 1,
         pageSize: 15,
@@ -301,6 +388,9 @@ export default {
           cursor: pointer;
           color: #409eff;
           font-size: 16px;
+        }
+        .el-input__inner {
+          padding: 0 2px;
         }
       }
       .el-table__header .cell, .el-table__body .cell {
