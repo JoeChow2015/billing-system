@@ -4,7 +4,7 @@
       <el-col :span="6">
         <span class="label">寄件公司</span>
         <el-select
-          v-model="filter.company"
+          v-model="filter.name"
           clearable
           filterable
           placeholder="请选择">
@@ -48,35 +48,45 @@
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
        ref="billingTable">
+       <el-table-column
+          prop="id"
+          label="ID"
+          width="70">
+        </el-table-column>
         <el-table-column
-          prop="company"
+          prop="name"
           label="寄件公司"
           min-width="200">
         </el-table-column>
         <el-table-column
-         prop="province"
+          prop="phone"
+          label="联系方式"
+          min-width="80">
+        </el-table-column>
+        <el-table-column
+         prop="dest"
          label="省份">
         </el-table-column>
         <el-table-column
-          prop="weightPrice"
-          label="重量单价">
+          prop="hprice"
+          label="重量单价（元）">
         </el-table-column>
         <el-table-column
-          prop="volumnPrice"
-          label="体积单价">
+          prop="vprice"
+          label="体积单价（元）">
         </el-table-column>
         <el-table-column
-          prop="priceInit"
-          label="起步价">
+          prop="basePrice"
+          label="起步价（元）">
         </el-table-column>
         <el-table-column
           label="操作"
           fixed="right"
-          width="100">
-          <template slot-scope="">
-            <el-button type="text" @click="openDialog(false)">编辑</el-button>
+          width="80">
+          <template slot-scope="scope">
+            <i class="el-icon-edit" @click="openDialog(false, scope.row)"></i>
             <el-divider direction="vertical"></el-divider>
-            <el-button type="text">删除</el-button>
+            <i class="el-icon-delete" @click="deleteUser(scope.row)"></i>
           </template>
         </el-table-column>
       </el-table>
@@ -90,13 +100,16 @@
         @size-change="pageIndexChange"
         hide-on-single-page	 />
     </el-row>
-    <el-dialog class="custom-dialog" :title="title" :visible.sync="dialogVisible" width="500px" destroy-on-close>
-      <el-form ref="customFormn" :model="form" :rules="rules" label-position="right" label-width="80px">
-        <el-form-item label="寄件公司" prop="company">
-          <el-input v-model="form.company" placeholder="请填写寄件公司"></el-input>
+    <el-dialog class="custom-dialog" :title="title" :visible.sync="dialogVisible" width="550px" destroy-on-close>
+      <el-form ref="customForm" :model="form" :rules="rules" label-position="right" label-width="130px">
+        <el-form-item label="寄件公司" prop="name">
+          <el-input v-model="form.name" clearable placeholder="请填写寄件公司"></el-input>
         </el-form-item>
-        <el-form-item label="省份" prop="province">
-          <el-select v-model="form.province" placeholder="请选择省份">
+        <el-form-item label="联系方式" prop="phone">
+          <el-input v-model="form.phone" clearable placeholder="请填写联系方式"></el-input>
+        </el-form-item>
+        <el-form-item label="省份" prop="dest">
+          <el-select v-model="form.dest" clearable placeholder="请选择省份">
             <el-option
               v-for="item in PROVINCE"
               :key="item"
@@ -105,50 +118,40 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="重量单价" prop="weightPrice">
-          <el-input v-model.number="form.weightPrice" placeholder="请填写重量单价"></el-input>
+        <el-form-item label="重量单价（元）" prop="hprice">
+          <el-input v-model="form.hprice" clearable placeholder="请填写重量单价"></el-input>
         </el-form-item>
-        <el-form-item label="体积单价" prop="volumnPrice">
-          <el-input v-model.number="form.volumnPrice" placeholder="请填写体积单价"></el-input>
+        <el-form-item label="体积单价（元）" prop="vprice">
+          <el-input v-model="form.vprice" clearable placeholder="请填写体积单价"></el-input>
         </el-form-item>
-        <el-form-item label="起步价" prop="priceInit">
-          <el-input v-model.number="form.priceInit" placeholder="请填写起步价"></el-input>
+        <el-form-item label="起步价（元）" prop="basePrice">
+          <el-input v-model="form.basePrice" clearable placeholder="请填写起步价"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="save(true)">保存</el-button>
-        <el-button type="primary" @click="save(false)">保存并新增</el-button>
+        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
+        <el-button size="mini" type="primary" @click="save(true)">保存</el-button>
+        <!-- <el-button size="mini" type="primary" @click="save(false)">保存并新增</el-button> -->
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
 import { PROVINCE } from '@/utils/constant.js'
+import API from '@/api/index'
+
 export default {
-  name: 'Billing',
+  name: 'Customer',
   data () {
     return {
       PROVINCE,
       filter: {
-        company: '',
-        province: ''
+        name: '',
+        dest: ''
       },
       tableHeight: 100,
       loading: false,
-      dataList: [{
-        company: 'qtt',
-        province: '浙江',
-        weightPrice: 30,
-        volumnPrice: 200,
-        priceInit: 120
-      },{
-        company: '趣头条',
-        province: '上海',
-        weightPrice: 30,
-        volumnPrice: 200,
-        priceInit: 120
-      }],
+      dataList: [],
       pagination: {
         currentPage: 1,
         pageSize: 15,
@@ -157,30 +160,29 @@ export default {
       title: '',
       dialogVisible: false,
       form: {
-        company: '',
-        province: '',
-        weightPrice: '',
-        volumnPrice: '',
-        priceInit: ''
+        id: null,
+        name: '',
+        phone: '',
+        dest: '',
+        hprice: '',
+        vprice: '',
+        basePrice: ''
       },
        rules: {
-          company: [
-            { required: true, message: '寄件公司不能为空', trigger: 'change' },
+          name: [
+            { required: true, message: '寄件公司不能为空', trigger: 'change' }
           ],
-          province: [
+          dest: [
             { required: true, message: '省份不能为空', trigger: 'change' }
           ],
-          weightPrice: [
-            { required: true, message: '重量单价不能为空', trigger: 'change' },
-            { type: 'number', message: '请输入数字', trigger: 'change' },
+          hprice: [
+            { required: true, message: '重量单价不能为空', trigger: 'change' }
           ],
-          volumnPrice: [
-            { required: true, message: '体积单价不能为空', trigger: 'change' },
-            { type: 'number', message: '请输入数字', trigger: 'blur' },
+          vprice: [
+            { required: true, message: '体积单价不能为空', trigger: 'change' }
           ],
-          priceInit: [
-            { required: true, message: '起步价不能为空', trigger: 'change' },
-            { type: 'number', message: '请输入数字', trigger: 'blur' },
+          basePrice: [
+            { required: true, message: '起步价不能为空', trigger: 'change' }
           ]
        }
     }
@@ -191,11 +193,24 @@ export default {
       return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     },
   },
+  created () {
+    this.fetchUserList()
+  },
   mounted () {
     this.getTableHeight()
     this.pagination.total = this.dataList.length
   },
   methods: {
+    // 获取客户列表
+    async fetchUserList () {
+      const params = {}
+      let result = await API.getUserList(params)
+      if (result && result.code === 1) {
+        this.dataList = result.data || []
+      } else {
+        this.$message.error('获取客户列表异常')
+      }
+    },
     getTableHeight () {
       setTimeout(() => {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
@@ -204,18 +219,53 @@ export default {
     pageIndexChange (e) {
       this.pagination.currentPage = e
     },
-    openDialog (isNew = false) {
-      this.title = isNew ? '新增寄件公司' : '编辑寄件公司'
+    openDialog (isNew = true, row) {
       this.dialogVisible = true
+      if (isNew) {
+        this.title = '新增寄件公司'
+        this.form.id = null
+      } else {
+        this.title = '编辑寄件公司'
+        this.form = row
+      }
     },
+    // 保存客户列表
     save (onlySave = true) {
-      this.$refs.customFormn.validate((valid) => {
+      this.$refs.customForm.validate(async (valid) => {
         if (valid) {
-          this.dialogVisible = !onlySave
-          this.$refs.customFormn.resetFields()
+          let result = await API.saveUser(this.form)
+          if (result && result.code === 1) {
+            this.$message({
+              message: this.form.id ? '编辑客户成功！' : '新增客户成功！',
+              type: 'success'
+            })
+            this.fetchUserList()
+            this.$refs.customForm.resetFields()
+            this.dialogVisible = !onlySave
+          } else {
+            this.$message.error(result.message)
+          }
         } else {
-          
           return false;
+        }
+      })
+    },
+    // 删除
+    deleteUser (row) {
+      this.$confirm(`确定要删除：${row.name} ?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        let result = await API.deleteUserById (row.id)
+        if (result && result.code === 1) {
+          this.$message({
+            message: '删除客户成功！',
+            type: 'success'
+          })
+          this.fetchUserList()
+        } else {
+          this.$message.error(result.message)
         }
       })
     }
@@ -268,6 +318,9 @@ export default {
     .custom-dialog {
       .el-dialog__header {
         text-align: left;
+      }
+      .el-dialog__body {
+        padding: 5px 20px;
       }
       .el-form-item__content {
         text-align: left;

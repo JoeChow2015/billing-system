@@ -246,6 +246,7 @@
 </template>
 <script>
 import { PAY_TYPE, PROVINCE } from '@/utils/constant.js'
+import API from '@/api/index'
 export default {
   name: 'Billing',
   data () {
@@ -312,11 +313,20 @@ export default {
       return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     },
   },
+  created () {
+    this.fetchOrderList()
+  },
   mounted () {
     this.getTableHeight()
     this.pagination.total = this.dataList.length
   },
   methods: {
+    // 获取订单列表
+    async fetchOrderList () {
+      const params = {}
+      let result = await API.getOrderList(params)
+      console.log(result)
+    },
     getTableHeight () {
       setTimeout(() => {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
