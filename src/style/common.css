@@ -1,6 +1,7 @@
 * {
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 }
 html, body {
   width: 100%;
@@ -16,4 +17,10 @@ html, body {
 
 .el-col {
   height: 100%;
+}
+.el-icon-delete {
+  color: #F56C6C !important;
+}
+.el-icon-check {
+  color: #67C23A !important;
 }

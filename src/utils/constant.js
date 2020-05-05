@@ -1,12 +1,15 @@
 const PAY_TYPE = [{
-  label: '现金',
+  label: '月结',
   value: 1
 }, {
-  label: '到付',
+  label: '现金',
   value: 2
 }, {
-  label: '月结',
+  label: '到付',
   value: 3
+}, {
+  label: '已结',
+  value: 4
 }]
 
 const PROVINCE = [

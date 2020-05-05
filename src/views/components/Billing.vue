@@ -14,29 +14,12 @@
         </el-date-picker>
       </el-col>
       <el-col>
-        <span class="label">寄件公司</span>
-        <el-select
-          v-model="filter.company"
-          clearable
-          filterable
-          placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
-          <el-option
-            v-for="item in 10"
-            :key="item"
-            :label="item"
-            :value="item">
-          </el-option>
-        </el-select>
-      </el-col>
-      <el-col>
         <span class="label">省份</span>
         <el-select
           v-model="filter.address"
           clearable
           filterable
           placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
           <el-option
             v-for="item in PROVINCE"
             :key="item"
@@ -46,12 +29,15 @@
         </el-select>
       </el-col>
       <el-col>
+        <span class="label">寄件公司</span>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索"></el-input>
+      </el-col>
+      <el-col>
         <span class="label">支付方式</span>
         <el-select
           v-model="filter.payType"
           clearable
           placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
           <el-option
             v-for="item in PAY_TYPE"
             :key="item.value"
@@ -64,12 +50,12 @@
     <el-row class="table-box">
       <el-col class="btn-action">
         <el-button type="text" @click="newLine">插入一行</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-plus">新增客户</el-button>
+        <!-- <el-button type="primary" size="mini" icon="el-icon-plus">新增客户</el-button> -->
         <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
         <el-button type="primary" size="mini" icon="el-icon-download">导出账单</el-button>
       </el-col>
       <el-table
-       :data="tableListComputed"
+       :data="tableList"
        size="mini"
        border
        v-loading="loading"
@@ -82,86 +68,104 @@
           label="寄件日期"
           width="90">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.date"></el-input>
-            <span v-else>{{ scope.row.date }}</span>
+            <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.mailDate"></el-input>
+            <span v-else>{{ scope.row.mailDate }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="运单号"
           width="80">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.ID"></el-input>
-            <span v-else>{{ scope.row.ID }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.orderNum"></el-input>
+            <span v-else>{{ scope.row.orderNum }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="寄件公司">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.company"></el-input>
-            <span v-else>{{ scope.row.company }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName"></el-input>
+            <span v-else>{{ scope.row.customerName }}</span>
           </template>
         </el-table-column>
         <el-table-column
          label="省份"
          width="60">
          <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.province"></el-input>
-            <span v-else>{{ scope.row.province }}</span>
+           <el-select
+            v-if="scope.row.isEdit"
+            size="mini" 
+            v-model="scope.row.dest"
+            clearable
+            filterable>
+            <el-option
+              v-for="item in PROVINCE"
+              :key="item"
+              :label="item"
+              :value="item">
+            </el-option>
+            </el-select>
+            <span v-else>{{ scope.row.dest }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="目的网点"
           width="60">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.address"></el-input>
-            <span v-else>{{ scope.row.address }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.outlets"></el-input>
+            <span v-else>{{ scope.row.outlets }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="收件客户"
           width="70">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customer"></el-input>
-            <span v-else>{{ scope.row.customer }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.recipient"></el-input>
+            <span v-else>{{ scope.row.recipient }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="件数"
           width="50">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.count"></el-input>
-            <span v-else>{{ scope.row.count }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.goodsNum"></el-input>
+            <span v-else>{{ scope.row.goodsNum }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="重量/体积"
           width="70">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.weight"></el-input>
-            <span v-else>{{ scope.row.weight }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.quantity"></el-input>
+            <span v-else>{{ scope.row.quantity }}</span>
           </template>
         </el-table-column>       
         <el-table-column
           label="保价费"
           width="50">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.protectedPrice"></el-input>
-            <span v-else>{{ scope.row.protectedPrice }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.insuredFee"></el-input>
+            <span v-else>{{ scope.row.insuredFee }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="单价"
           width="50">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.price"></el-input>
-            <span v-else>{{ scope.row.price }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.unitPrice"></el-input>
+            <span v-else>{{ scope.row.unitPrice }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="计费方式"
           width="60">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.priceType"></el-input>
+            <el-select
+              size="mini"
+              v-if="scope.row.isEdit" 
+              v-model="scope.row.priceType">
+              <el-option label="重量" value="1"></el-option>
+              <el-option label="体积" value="2"></el-option>
+            </el-select>
             <span v-else>{{ scope.row.priceType }}</span>
           </template>
         </el-table-column>
@@ -177,7 +181,17 @@
           label="支付方式"
           width="60">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.payType"></el-input>
+            <el-select
+              size="mini"
+              v-if="scope.row.isEdit" 
+              v-model="scope.row.payType">
+              <el-option
+                v-for="item in PAY_TYPE"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
             <span v-else>{{ scope.row.payType }}</span>
           </template>
         </el-table-column>
@@ -185,8 +199,8 @@
           label="总金额"
           width="65">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.total"></el-input>
-            <span v-else>{{ scope.row.total }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.totalPrice"></el-input>
+            <span v-else>{{ scope.row.totalPrice }}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -209,8 +223,8 @@
           label="备注"
           show-overflow-tooltip>
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.comment"></el-input>
-            <span v-else>{{ scope.row.comment }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.desc"></el-input>
+            <span v-else>{{ scope.row.desc }}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -219,7 +233,7 @@
           width="100">
           <template slot-scope="scope">
             <template v-if="scope.row.isEdit">
-              <i class="el-icon-check" @click="scope.row.isEdit = false"></i>
+              <i class="el-icon-check" @click="saveLine(scope.row)"></i>
               <el-divider direction="vertical"></el-divider>
               <i class="el-icon-close" @click="scope.row.isEdit = false"></i>
               <el-divider direction="vertical"></el-divider>
@@ -228,7 +242,7 @@
               <i class="el-icon-edit" @click="scope.row.isEdit = true"></i>
               <el-divider direction="vertical"></el-divider>
             </template>
-            <i class="el-icon-delete"></i>
+            <i class="el-icon-delete" @click="deleteOrder(scope.row)"></i>
           </template>
         </el-table-column>
       </el-table>
@@ -245,8 +259,10 @@
   </div>
 </template>
 <script>
+import moment from 'moment'
 import { PAY_TYPE, PROVINCE } from '@/utils/constant.js'
 import API from '@/api/index'
+
 export default {
   name: 'Billing',
   data () {
@@ -256,50 +272,12 @@ export default {
       filter: {
         date: [],
         company: '',
-        address: '',
+        dest: '',
         payType: ''
       },
       tableHeight: 100,
       loading: false,
-      dataList: [{
-        date: '2020-04-23',
-        ID: 123456,
-        company: 'qtt',
-        address: '浦东',
-        province: '内蒙古',
-        customer: '周星星',
-        count: 10,
-        weight: 30,
-        protectedPrice: 8,
-        price: 30,
-        priceType: '重量',
-        extra: '',
-        payType: '现金',
-        total: 200,
-        cost: 120,
-        profit: 70,
-        comment: '测试',
-        isEdit: false
-      },{
-        date: '2020-04-24',
-        ID: 122,
-        company: 'qtt',
-        address: '浦东',
-        province: '内蒙古',
-        customer: '周星星',
-        count: 10,
-        weight: 30,
-        protectedPrice: 8,
-        price: 30,
-        priceType: '重量',
-        extra: '',
-        payType: '现金',
-        total: 200,
-        cost: 120,
-        profit: 70,
-        comment: '测试',
-        isEdit: false
-      }],
+      dataList: [],
       pagination: {
         currentPage: 1,
         pageSize: 15,
@@ -307,25 +285,87 @@ export default {
       }
     }
   },
-  computed: {
-    tableListComputed () {
-      const { currentPage, pageSize } = this.pagination
-      return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    },
-  },
   created () {
     this.fetchOrderList()
   },
   mounted () {
     this.getTableHeight()
-    this.pagination.total = this.dataList.length
   },
   methods: {
     // 获取订单列表
-    async fetchOrderList () {
-      const params = {}
+    async fetchOrderList (isLoading = true) {
+      this.loading = isLoading
+      const params = {
+        page: this.pagination.currentPage,
+        size: this.pagination.pageSize,
+        sortProperties: 'create_time',
+        sortDirection: 'desc',
+        startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        company: this.filter.company,
+        dest: this.filter.desc,
+        payType: this.filter.payType
+      }
       let result = await API.getOrderList(params)
-      console.log(result)
+      if (result && result.code === 1) {
+        this.dataList = result.data.data || []
+        this.pagination.total = result.data.total
+      }
+      this.loading = false
+    },
+    newLine () {
+      this.dataList.unshift({
+        mailDate: moment().format('YYYY-MM-DD'),
+        orderNum: '',
+        customerName: '',
+        outlets: '',
+        dest: '',
+        recipient: '',
+        goodsNum: '',
+        quantity: '',
+        insuredFee: '',
+        unitPrice: '',
+        priceType: '',
+        extra: '',
+        payType: '',
+        totalPrice: '',
+        cost: '',
+        profit: '',
+        desc: '',
+        isEdit: true
+      })
+    },
+    // 保存
+    async saveLine (row) {
+      let result = await API.saveOrder(row)
+      if (result && result.code === 1) {
+        this.$message({
+          message: row.id ? '编辑订单成功！' : '新增订单成功！',
+          type: 'success'
+        })
+        row.isEdit = false
+      } else {
+        this.$message.error(result.message)
+      }
+    },
+    // 删除
+    deleteOrder (row) {
+      this.$confirm('确定要删除该订单?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        let result = await API.deleteOrderById (row.id)
+        if (result && result.code === 1) {
+          this.$message({
+            message: '删除订单成功！',
+            type: 'success'
+          })
+          row.isEdit = false
+        } else {
+          this.$message.error(result.message)
+        }
+      })
     },
     getTableHeight () {
       setTimeout(() => {
@@ -334,29 +374,8 @@ export default {
     },
     pageIndexChange (e) {
       this.pagination.currentPage = e
-    },
-    newLine () {
-      this.dataList.unshift({
-        date: '',
-        ID: '',
-        company: '',
-        address: '',
-        province: '',
-        customer: '',
-        count: '',
-        weight: '',
-        protectedPrice: '',
-        price: '',
-        priceType: '',
-        extra: '',
-        payType: '',
-        total: '',
-        cost: '',
-        profit: '',
-        comment: '',
-        isEdit: true
-      })
-    },
+      this.fetchOrderList()
+    }
   }
 }
 </script>
@@ -372,13 +391,15 @@ export default {
       flex-wrap: wrap;
       .el-col {
         flex: 1;
+        display: flex;
       }
       .el-date-editor {
         width: 250px;
       }
       .label {
         margin-right: 10px;
-        line-height: 28px;
+        line-height: 40px;
+        white-space: nowrap;
       }
     }
     .table-box {

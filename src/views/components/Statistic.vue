@@ -13,26 +13,15 @@
           value-format="yyyy-MM-dd">
         </el-date-picker>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="10">
         <span class="label">寄件公司</span>
-        <el-select
-          v-model="filter.company"
-          clearable
-          filterable
-          placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
-          <el-option
-            v-for="item in 10"
-            :key="item"
-            :label="item"
-            :value="item">
-          </el-option>
-        </el-select>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索"></el-input>
       </el-col>
     </el-row>
     <el-row class="table-box">
       <el-table
-       :data="tableListComputed"
+      size="mini"
+       :data="tableList"
        v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
@@ -74,9 +63,12 @@
   </div>
 </template>
 <script>
+import moment from 'moment'
 import { PROVINCE } from '@/utils/constant.js'
+import API from '@/api/index'
+
 export default {
-  name: 'Billing',
+  name: 'Statistic',
   data () {
     return {
       PROVINCE,
@@ -86,19 +78,7 @@ export default {
       },
       tableHeight: 100,
       loading: false,
-      dataList: [{
-        company: 'qtt',
-        count: 300,
-        toalPrice: 30,
-        totalCost: 200,
-        totalProfit: 120
-      },{
-        company: '趣头条',
-        count: 400,
-        toalPrice: 30,
-        totalCost: 200,
-        totalProfit: 120
-      }],
+      dataList: [],
       pagination: {
         currentPage: 1,
         pageSize: 15,
@@ -106,17 +86,32 @@ export default {
       }
     }
   },
-  computed: {
-    tableListComputed () {
-      const { currentPage, pageSize } = this.pagination
-      return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-    },
+  created () {
+    this.fetchStatisticList()
   },
   mounted () {
     this.getTableHeight()
-    this.pagination.total = this.dataList.length
   },
   methods: {
+    // 获取订单列表
+    async fetchStatisticList (isLoading = true) {
+      this.loading = isLoading
+      const params = {
+        page: this.pagination.currentPage,
+        size: this.pagination.pageSize,
+        sortProperties: 'create_time',
+        sortDirection: 'desc',
+        startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        company: this.filter.company
+      }
+      let result = await API.getStatisticList(params)
+      if (result && result.code === 1) {
+        this.dataList = result.data.data || []
+        this.pagination.total = result.data.total
+      }
+      this.loading = false
+    },
     getTableHeight () {
       setTimeout(() => {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
@@ -124,6 +119,7 @@ export default {
     },
     pageIndexChange (e) {
       this.pagination.currentPage = e
+      this.fetchStatisticList()
     }
   }
 }
@@ -142,7 +138,11 @@ export default {
       }
       .label {
         margin-right: 10px;
-        line-height: 28px;
+        line-height: 40px;
+        white-space: nowrap;
+      }
+      .el-col-10 {
+        display: flex;
       }
     }
     .table-box {
