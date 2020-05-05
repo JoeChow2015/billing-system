@@ -2,25 +2,9 @@
   <div class="the-customer-container">
     <el-row class="search-box" :gutter="20">
       <el-col :span="6">
-        <span class="label">寄件公司</span>
-        <el-select
-          v-model="filter.name"
-          clearable
-          filterable
-          placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
-          <el-option
-            v-for="item in 10"
-            :key="item"
-            :label="item"
-            :value="item">
-          </el-option>
-        </el-select>
-      </el-col>
-      <el-col :span="6">
         <span class="label">省份</span>
         <el-select
-          v-model="filter.provice"
+          v-model="filter.desc"
           clearable
           filterable
           placeholder="请选择">
@@ -32,6 +16,10 @@
             :value="item">
           </el-option>
         </el-select>
+      </el-col>
+      <el-col :span="10">
+        <span class="label">寄件公司</span>
+        <el-input v-model="filter.name" clearable filterable placeholder="输入寄件公司搜索"></el-input>
       </el-col>
     </el-row>
     <el-row class="table-box">
@@ -188,9 +176,18 @@ export default {
     }
   },
   computed: {
+    dataListFilter () {
+      if (this.filter.name && this.filter.desc) {
+        return this.dataList.filter(item => item.name.includes(this.filter.name) && item.dest.includes(this.filter.desc))
+      } else {
+        return this.dataList.filter(item => this.filter.name
+          ? item.name.includes(this.filter.name)
+          : (this.filter.desc ? item.dest.includes(this.filter.desc) : true ))
+      }
+    },
     tableListComputed () {
       const { currentPage, pageSize } = this.pagination
-      return this.dataList.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+      return this.dataListFilter.slice((currentPage - 1) * pageSize, currentPage * pageSize)
     },
   },
   created () {
@@ -198,7 +195,6 @@ export default {
   },
   mounted () {
     this.getTableHeight()
-    this.pagination.total = this.dataList.length
   },
   methods: {
     // 获取客户列表
@@ -207,6 +203,7 @@ export default {
       let result = await API.getUserList(params)
       if (result && result.code === 1) {
         this.dataList = result.data || []
+        this.pagination.total = this.dataList.length
       } else {
         this.$message.error('获取客户列表异常')
       }
@@ -283,7 +280,11 @@ export default {
       justify-content: flex-start;
       .label {
         margin-right: 10px;
-        line-height: 28px;
+        line-height: 40px;
+        white-space: nowrap;
+      }
+      .el-col-10 {
+        display: flex;
       }
     }
     .table-box {
