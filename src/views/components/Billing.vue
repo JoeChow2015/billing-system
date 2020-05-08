@@ -49,13 +49,13 @@
     </el-row>
     <el-row class="table-box">
       <el-col class="btn-action">
-        <el-button type="text" @click="newLine">插入一行</el-button>
-        <!-- <el-button type="primary" size="mini" icon="el-icon-plus">新增客户</el-button> -->
+        <el-button type="primary" size="mini" icon="el-icon-plus" @click="newLine">插入一行</el-button>
         <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
         <el-button type="primary" size="mini" icon="el-icon-download">导出账单</el-button>
+        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchOrderList">刷新</el-button>
       </el-col>
       <el-table
-       :data="tableList"
+       :data="dataList"
        size="mini"
        border
        v-loading="loading"
@@ -66,7 +66,7 @@
        ref="billingTable">
         <el-table-column
           label="寄件日期"
-          width="90">
+          width="100">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.mailDate"></el-input>
             <span v-else>{{ scope.row.mailDate }}</span>
@@ -74,7 +74,7 @@
         </el-table-column>
         <el-table-column
           label="运单号"
-          width="80">
+          width="100">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.orderNum"></el-input>
             <span v-else>{{ scope.row.orderNum }}</span>
@@ -89,13 +89,14 @@
         </el-table-column>
         <el-table-column
          label="省份"
-         width="60">
+         width="80">
          <template slot-scope="scope">
            <el-select
             v-if="scope.row.isEdit"
             size="mini" 
             v-model="scope.row.dest"
             clearable
+            :disabled="!scope.row.customerName"
             filterable>
             <el-option
               v-for="item in PROVINCE"
@@ -109,7 +110,7 @@
         </el-table-column>
         <el-table-column
           label="目的网点"
-          width="60">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.outlets"></el-input>
             <span v-else>{{ scope.row.outlets }}</span>
@@ -117,18 +118,23 @@
         </el-table-column>
         <el-table-column
           label="收件客户"
-          width="70">
+          width="100">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.recipient"></el-input>
             <span v-else>{{ scope.row.recipient }}</span>
           </template>
         </el-table-column>
         <el-table-column
-          label="件数"
-          width="50">
+          label="计费方式"
+          width="65">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.goodsNum"></el-input>
-            <span v-else>{{ scope.row.goodsNum }}</span>
+            <el-select
+              size="mini"
+              :disabled="!scope.row.isEdit"
+              v-model="scope.row.priceType">
+              <el-option label="重量" :value="1"></el-option>
+              <el-option label="体积" :value="2"></el-option>
+            </el-select>
           </template>
         </el-table-column>
         <el-table-column
@@ -138,10 +144,18 @@
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.quantity"></el-input>
             <span v-else>{{ scope.row.quantity }}</span>
           </template>
-        </el-table-column>       
+        </el-table-column>   
+        <el-table-column
+          label="件数"
+          width="70">
+          <template slot-scope="scope">
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.goodsNum"></el-input>
+            <span v-else>{{ scope.row.goodsNum }}</span>
+          </template>
+        </el-table-column>    
         <el-table-column
           label="保价费"
-          width="50">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.insuredFee"></el-input>
             <span v-else>{{ scope.row.insuredFee }}</span>
@@ -149,29 +163,23 @@
         </el-table-column>
         <el-table-column
           label="单价"
-          width="50">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.unitPrice"></el-input>
             <span v-else>{{ scope.row.unitPrice }}</span>
           </template>
         </el-table-column>
         <el-table-column
-          label="计费方式"
-          width="60">
+          label="起步价"
+          width="70">
           <template slot-scope="scope">
-            <el-select
-              size="mini"
-              v-if="scope.row.isEdit" 
-              v-model="scope.row.priceType">
-              <el-option label="重量" value="1"></el-option>
-              <el-option label="体积" value="2"></el-option>
-            </el-select>
-            <span v-else>{{ scope.row.priceType }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.basePrice"></el-input>
+            <span v-else>{{ scope.row.basePrice }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="附加费"
-          width="50">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.extra"></el-input>
             <span v-else>{{ scope.row.extra }}</span>
@@ -179,11 +187,11 @@
         </el-table-column>
         <el-table-column
           label="支付方式"
-          width="60">
+          width="65">
           <template slot-scope="scope">
             <el-select
               size="mini"
-              v-if="scope.row.isEdit" 
+              :disabled="!scope.row.isEdit"
               v-model="scope.row.payType">
               <el-option
                 v-for="item in PAY_TYPE"
@@ -192,12 +200,11 @@
                 :value="item.value">
               </el-option>
             </el-select>
-            <span v-else>{{ scope.row.payType }}</span>
           </template>
         </el-table-column>
         <el-table-column
           label="总金额"
-          width="65">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.totalPrice"></el-input>
             <span v-else>{{ scope.row.totalPrice }}</span>
@@ -205,7 +212,7 @@
         </el-table-column>
         <el-table-column
           label="成本"
-          width="55">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.cost"></el-input>
             <span v-else>{{ scope.row.cost }}</span>
@@ -213,7 +220,7 @@
         </el-table-column>
         <el-table-column
           label="利润"
-          width="55">
+          width="70">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.profit"></el-input>
             <span v-else>{{ scope.row.profit }}</span>
@@ -223,8 +230,8 @@
           label="备注"
           show-overflow-tooltip>
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.desc"></el-input>
-            <span v-else>{{ scope.row.desc }}</span>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.description"></el-input>
+            <span v-else>{{ scope.row.description }}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -242,7 +249,7 @@
               <i class="el-icon-edit" @click="scope.row.isEdit = true"></i>
               <el-divider direction="vertical"></el-divider>
             </template>
-            <i class="el-icon-delete" @click="deleteOrder(scope.row)"></i>
+            <i class="el-icon-delete" @click="deleteOrder(scope.row, scope.$index)"></i>
           </template>
         </el-table-column>
       </el-table>
@@ -303,12 +310,15 @@ export default {
         startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         company: this.filter.company,
-        dest: this.filter.desc,
+        dest: this.filter.description,
         payType: this.filter.payType
       }
       let result = await API.getOrderList(params)
       if (result && result.code === 1) {
-        this.dataList = result.data.data || []
+        this.dataList = (result.data.data || []).map(item => ({
+          ...item,
+          isEdit: false
+        }))
         this.pagination.total = result.data.total
       }
       this.loading = false
@@ -325,18 +335,20 @@ export default {
         quantity: '',
         insuredFee: '',
         unitPrice: '',
-        priceType: '',
+        basePrice: '',
+        priceType: 1,
         extra: '',
-        payType: '',
+        payType: 1,
         totalPrice: '',
         cost: '',
         profit: '',
-        desc: '',
+        description: '',
         isEdit: true
       })
     },
     // 保存
     async saveLine (row) {
+      delete row.isEdit
       let result = await API.saveOrder(row)
       if (result && result.code === 1) {
         this.$message({
@@ -344,12 +356,17 @@ export default {
           type: 'success'
         })
         row.isEdit = false
+        this.fetchOrderList(false)
       } else {
         this.$message.error(result.message)
       }
     },
     // 删除
-    deleteOrder (row) {
+    deleteOrder (row, index) {
+      if (!row.id) {
+        this.dataList.splice(index, 1)
+        return
+      }
       this.$confirm('确定要删除该订单?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -362,6 +379,7 @@ export default {
             type: 'success'
           })
           row.isEdit = false
+          this.fetchOrderList(false)
         } else {
           this.$message.error(result.message)
         }
@@ -422,6 +440,10 @@ export default {
         }
         .el-input__inner {
           padding: 0 2px;
+        }
+        .el-input.is-disabled .el-input__inner {
+          background-color: #fff;
+          color: #333;
         }
       }
       .el-table__header .cell, .el-table__body .cell {
