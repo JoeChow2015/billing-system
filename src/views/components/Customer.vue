@@ -203,8 +203,6 @@ export default {
       if (result && result.code === 1) {
         this.dataList = result.data || []
         this.pagination.total = this.dataList.length
-      } else {
-        this.$message.error('获取客户列表异常')
       }
     },
     getTableHeight () {
@@ -243,8 +241,6 @@ export default {
             this.fetchUserList()
             this.$refs.customForm.resetFields()
             this.dialogVisible = !onlySave
-          } else {
-            this.$message.error(result.message)
           }
         } else {
           return false;
@@ -265,8 +261,6 @@ export default {
             type: 'success'
           })
           this.fetchUserList()
-        } else {
-          this.$message.error(result.message)
         }
       })
     }

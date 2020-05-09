@@ -392,8 +392,6 @@ export default {
         })
         row.isEdit = false
         this.fetchOrderList(false)
-      } else {
-        this.$message.error(result.message)
       }
     },
     // 核对账单
@@ -440,8 +438,6 @@ export default {
           })
           row.isEdit = false
           this.fetchOrderList(false)
-        } else {
-          this.$message.error(result.message)
         }
       })
     },
