@@ -5,48 +5,61 @@
         <span class="label">日期</span>
         <el-date-picker
           v-model="filter.date"
+          clear
           type="daterange"
-          clearable
           range-separator="~"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          value-format="yyyy-MM-dd">
+          value-format="yyyy-MM-dd"
+          @clear="fetchStatisticList"
+          @change="fetchStatisticList">
         </el-date-picker>
       </el-col>
       <el-col :span="10">
         <span class="label">寄件公司</span>
-        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索"></el-input>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索" @keydown.enter.native="fetchStatisticList"></el-input>
       </el-col>
     </el-row>
     <el-row class="table-box">
+      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
+      <el-col :span="22" class="btn-action">
+        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchStatisticList">刷新</el-button>
+      </el-col>
       <el-table
       size="mini"
-       :data="tableList"
+       :data="dataList"
        v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
        ref="billingTable">
+       <el-table-column
+          label="寄件日期"
+          idth="100">
+          <template slot-scope="scope">
+            <span >{{ scope.row.date | dateFormat }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="company"
+          prop="name"
           label="寄件公司"
           min-width="200">
         </el-table-column>
         <el-table-column
-         prop="count"
+         prop="num"
          label="件数">
         </el-table-column>
         <el-table-column
-          prop="toalPrice"
+          prop="price"
           label="总金额">
         </el-table-column>
         <el-table-column
-          prop="totalCost"
+          prop="cost"
           label="总成本">
         </el-table-column>
         <el-table-column
-          prop="totalProfit"
+          prop="profit"
           label="总利润">
         </el-table-column>
       </el-table>
@@ -69,6 +82,11 @@ import API from '@/api/index'
 
 export default {
   name: 'Statistic',
+  filters: {
+    dateFormat: (val) => {
+      return val ? moment(val).format('YYYY-MM-DD') : val
+    }
+  },
   data () {
     return {
       PROVINCE,
@@ -99,10 +117,10 @@ export default {
       const params = {
         page: this.pagination.currentPage,
         size: this.pagination.pageSize,
-        sortProperties: 'create_time',
+        sortProperties: 'cost',
         sortDirection: 'desc',
-        startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
-        endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        startTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         company: this.filter.company
       }
       let result = await API.getStatisticList(params)
@@ -146,11 +164,19 @@ export default {
       }
     }
     .table-box {
-      margin-top: 10px;
-      .btn-action {
+      .total-count {
         text-align: left;
-        margin-right: 10px;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 48px;
+      }
+      .btn-action {
+        display: flex;
+        justify-content: flex-end;
         padding: 10px 0;
+        .el-button {
+          margin-left: 10px;
+        }
       }
       .table-header-custom {
         background-color: #6c7b8b;

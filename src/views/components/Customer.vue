@@ -8,7 +8,6 @@
           clearable
           filterable
           placeholder="请选择">
-          <el-option label="全部" value="0"></el-option>
           <el-option
             v-for="item in PROVINCE"
             :key="item"
@@ -23,8 +22,10 @@
       </el-col>
     </el-row>
     <el-row class="table-box">
-      <el-col class="btn-action">
+      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
+      <el-col :span="22" class="btn-action">
         <el-button type="primary" size="mini" icon="el-icon-plus" @click="openDialog(true)">新增寄件公司</el-button>
+        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchUserList">刷新</el-button>
       </el-col>
       <el-table
        :data="tableListComputed"
@@ -273,6 +274,7 @@ export default {
 <style lang="less">
   .the-customer-container {
     .search-box {
+      text-align: left;
       padding: 10px 0;
       margin-right: 0 !important;
       border-bottom: 1px dashed #c4c4c4;
@@ -288,9 +290,19 @@ export default {
       }
     }
     .table-box {
-      .btn-action {
+      .total-count {
         text-align: left;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 48px;
+      }
+      .btn-action {
+        display: flex;
+        justify-content: flex-end;
         padding: 10px 0;
+        .el-button {
+          margin-left: 10px;
+        }
       }
       .table-header-custom {
         background-color: #6c7b8b;

@@ -12,6 +12,12 @@ export default {
   deleteOrderById (orderId) {
     return ins.delete(`/api/del/${orderId}/order`)
   },
+  // 下载订单
+  downloadBill (params) {
+    return ins.post('/api/download', params, {
+      responseType: 'blob'
+    })
+  },
   // // 根据orderId获取订单
   // getDetailByOrderId (orderId) {
   //   return ins.get(`/api/get/${orderId}/order`)

@@ -48,10 +48,16 @@
       </el-col>
     </el-row>
     <el-row class="table-box">
-      <el-col class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-plus" @click="newLine">插入一行</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-download">导出账单</el-button>
+      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
+      <el-col :span="22" class="btn-action">
+        <el-button type="primary" size="mini" icon="el-icon-plus" @click="newBill">插入一行</el-button>
+        <el-upload
+          action="/api/upload"
+          :on-success="uploadFileSuccess"
+          :show-file-list="false">
+          <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
+        </el-upload>
+        <el-button type="primary" size="mini" icon="el-icon-download" @click="downloadBill">导出对账单</el-button>
         <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchOrderList">刷新</el-button>
       </el-col>
       <el-table
@@ -74,7 +80,7 @@
         </el-table-column>
         <el-table-column
           label="运单号"
-          width="100">
+          width="110">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.orderNum"></el-input>
             <span v-else>{{ scope.row.orderNum }}</span>
@@ -118,7 +124,7 @@
         </el-table-column>
         <el-table-column
           label="收件客户"
-          width="100">
+          width="80">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.recipient"></el-input>
             <span v-else>{{ scope.row.recipient }}</span>
@@ -299,13 +305,11 @@ export default {
     this.getTableHeight()
   },
   methods: {
-    // 获取订单列表
-    async fetchOrderList (isLoading = true) {
-      this.loading = isLoading
-      const params = {
+    postParams () {
+      return {
         page: this.pagination.currentPage,
         size: this.pagination.pageSize,
-        sortProperties: 'create_time',
+        sortProperties: 'id',
         sortDirection: 'desc',
         startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
@@ -313,17 +317,24 @@ export default {
         dest: this.filter.description,
         payType: this.filter.payType
       }
+    },
+    // 获取订单列表
+    async fetchOrderList (isLoading = true) {
+      this.loading = isLoading
+      const params = this.postParams()
       let result = await API.getOrderList(params)
       if (result && result.code === 1) {
         this.dataList = (result.data.data || []).map(item => ({
           ...item,
+          mailDate: moment(item.mailDate).format('YYYY-MM-DD'),
           isEdit: false
         }))
         this.pagination.total = result.data.total
       }
       this.loading = false
     },
-    newLine () {
+    // 插入一行账单
+    newBill () {
       this.dataList.unshift({
         mailDate: moment().format('YYYY-MM-DD'),
         orderNum: '',
@@ -385,6 +396,33 @@ export default {
         }
       })
     },
+    // 导入对账单回调
+    uploadFileSuccess () {
+      this.$message({
+        message: '账单导入成功！',
+        type: 'success'
+      })
+      this.fetchOrderList()
+    },
+    // 导出对账单
+    async downloadBill () {
+      let params = this.postParams()
+      let result = await API.downloadBill(params)
+      let blob = new Blob([result]);
+      if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, `对账单_${new Date().getTime()}.xlsx`);
+      } else {
+        let link = document.createElement("a");
+        let evt = document.createEvent("HTMLEvents");
+        evt.initEvent("click", false, false);
+        link.href = URL.createObjectURL(blob); 
+        link.download = `对账单_${new Date().getTime()}.xlsx`;
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(link.href);
+      }
+    },
     getTableHeight () {
       setTimeout(() => {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
@@ -421,10 +459,19 @@ export default {
       }
     }
     .table-box {
+      .total-count {
+        text-align: left;
+        font-weight: 500;
+        font-size: 16px;
+        line-height: 48px;
+      }
       .btn-action {
-        text-align: right;
-        margin-right: 10px;
+        display: flex;
+        justify-content: flex-end;
         padding: 10px 0;
+        .el-button {
+          margin-left: 10px;
+        }
       }
       .table-header-custom {
         background-color: #6c7b8b;
