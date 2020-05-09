@@ -10,7 +10,9 @@
           range-separator="~"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          value-format="yyyy-MM-dd">
+          value-format="yyyy-MM-dd"
+          @clear="fetchOrderList"
+          @change="fetchOrderList">
         </el-date-picker>
       </el-col>
       <el-col>
@@ -19,7 +21,8 @@
           v-model="filter.address"
           clearable
           filterable
-          placeholder="请选择">
+          placeholder="请选择"
+          @change="fetchOrderList">
           <el-option
             v-for="item in PROVINCE"
             :key="item"
@@ -30,14 +33,16 @@
       </el-col>
       <el-col>
         <span class="label">寄件公司</span>
-        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索"></el-input>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索" @clear="fetchOrderList" @keydown.enter.native="fetchOrderList"></el-input>
       </el-col>
       <el-col>
         <span class="label">支付方式</span>
         <el-select
           v-model="filter.payType"
           clearable
-          placeholder="请选择">
+          placeholder="请选择"
+          @clear="fetchOrderList"
+          @change="fetchOrderList">
           <el-option
             v-for="(item, index) in PAY_TYPE"
             :key="index"
