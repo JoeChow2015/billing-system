@@ -48,9 +48,8 @@
       </el-col>
     </el-row>
     <el-row class="table-box">
-      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
-      <el-col :span="22" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-plus" @click="newBill">插入一行</el-button>
+      <el-col :span="24" class="btn-action">
+        <el-button type="primary" size="mini" icon="el-icon-circle-plus-outline" @click="newBill">插入一行</el-button>
         <el-upload
           action="/api/upload"
           :on-success="uploadFileSuccess"
@@ -72,7 +71,7 @@
        ref="billingTable">
         <el-table-column
           label="寄件日期"
-          width="100">
+          width="90">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.mailDate"></el-input>
             <span v-else>{{ scope.row.mailDate }}</span>
@@ -89,13 +88,13 @@
         <el-table-column
           label="寄件公司">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName"></el-input>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName" @change="getDetailByCC"></el-input>
             <span v-else>{{ scope.row.customerName }}</span>
           </template>
         </el-table-column>
         <el-table-column
          label="省份"
-         width="80">
+         width="75">
          <template slot-scope="scope">
            <el-select
             v-if="scope.row.isEdit"
@@ -103,7 +102,9 @@
             v-model="scope.row.dest"
             clearable
             :disabled="!scope.row.customerName"
-            filterable>
+            filterable
+            placeholder="选择"
+            @change="getDetailByCC">
             <el-option
               v-for="item in PROVINCE"
               :key="item"
@@ -132,12 +133,13 @@
         </el-table-column>
         <el-table-column
           label="计费方式"
-          width="65">
+          width="70">
           <template slot-scope="scope">
             <el-select
               size="mini"
               :disabled="!scope.row.isEdit"
-              v-model="scope.row.priceType">
+              v-model="scope.row.priceType"
+              placeholder="选择">
               <el-option label="重量" :value="1"></el-option>
               <el-option label="体积" :value="2"></el-option>
             </el-select>
@@ -153,7 +155,7 @@
         </el-table-column>   
         <el-table-column
           label="件数"
-          width="70">
+          width="55">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.goodsNum"></el-input>
             <span v-else>{{ scope.row.goodsNum }}</span>
@@ -161,7 +163,7 @@
         </el-table-column>    
         <el-table-column
           label="保价费"
-          width="70">
+          width="60">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.insuredFee"></el-input>
             <span v-else>{{ scope.row.insuredFee }}</span>
@@ -169,7 +171,7 @@
         </el-table-column>
         <el-table-column
           label="单价"
-          width="70">
+          width="60">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.unitPrice"></el-input>
             <span v-else>{{ scope.row.unitPrice }}</span>
@@ -177,7 +179,7 @@
         </el-table-column>
         <el-table-column
           label="起步价"
-          width="70">
+          width="60">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.basePrice"></el-input>
             <span v-else>{{ scope.row.basePrice }}</span>
@@ -185,7 +187,7 @@
         </el-table-column>
         <el-table-column
           label="附加费"
-          width="70">
+          width="60">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.extra"></el-input>
             <span v-else>{{ scope.row.extra }}</span>
@@ -210,7 +212,7 @@
         </el-table-column>
         <el-table-column
           label="总金额"
-          width="70">
+          width="80">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.totalPrice"></el-input>
             <span v-else>{{ scope.row.totalPrice }}</span>
@@ -226,7 +228,7 @@
         </el-table-column>
         <el-table-column
           label="利润"
-          width="70">
+          width="80">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.profit"></el-input>
             <span v-else>{{ scope.row.profit }}</span>
@@ -243,16 +245,18 @@
         <el-table-column
           label="操作"
           fixed="right"
-          width="100">
+          width="130">
           <template slot-scope="scope">
+            <i class="el-icon-s-check" @click="checkOrder(scope.row)"></i>
+            <el-divider direction="vertical"></el-divider>
             <template v-if="scope.row.isEdit">
               <i class="el-icon-check" @click="saveLine(scope.row)"></i>
               <el-divider direction="vertical"></el-divider>
-              <i class="el-icon-close" @click="scope.row.isEdit = false"></i>
+              <i class="el-icon-close" @click="cancelEdit(scope.row)"></i>
               <el-divider direction="vertical"></el-divider>
             </template>
             <template v-else>
-              <i class="el-icon-edit" @click="scope.row.isEdit = true"></i>
+              <i class="el-icon-edit" @click="editOrder(scope.row)"></i>
               <el-divider direction="vertical"></el-divider>
             </template>
             <i class="el-icon-delete" @click="deleteOrder(scope.row, scope.$index)"></i>
@@ -265,9 +269,8 @@
         next-text="下一页"
         :page-sizes="[15, 30, 50]"
         :total="pagination.total"
-        @current-change="pageIndexChange"
-        @size-change="pageIndexChange"
-        hide-on-single-page	 />
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"/>
     </el-row>
   </div>
 </template>
@@ -291,6 +294,7 @@ export default {
       tableHeight: 100,
       loading: false,
       dataList: [],
+      currentOrder: {},
       pagination: {
         currentPage: 1,
         pageSize: 15,
@@ -357,13 +361,27 @@ export default {
         isEdit: true
       })
     },
+    // 根据寄件公司和省份获取客户数据
+    async getDetailByCC (row) {
+      const { customerName, dest } = row
+      if (customerName || dest) {
+        return
+      }
+      // let result = await API.getDetailByCC({
+      //   name: customerName,
+      //   dest: dest
+      // })
+      // console.log(result)
+      // if (result && result.code === 1) {
+      // }
+    },
     // 保存
-    async saveLine (row) {
+    async saveLine (row, isCheck = false) {
       delete row.isEdit
       let result = await API.saveOrder(row)
       if (result && result.code === 1) {
         this.$message({
-          message: row.id ? '编辑订单成功！' : '新增订单成功！',
+          message: isCheck ? '订单核对成功' : (row.id ? '编辑订单成功！' : '新增订单成功！'),
           type: 'success'
         })
         row.isEdit = false
@@ -371,6 +389,27 @@ export default {
       } else {
         this.$message.error(result.message)
       }
+    },
+    // 核对账单
+    // 总金额=单价*重量/体积+保价费+附加费
+    // 如果小于起步价则总金额为起步价
+    // 利润等于总金额-成本 没有成本的情况下利润等于总成本
+    checkOrder (row){
+      let { unitPrice, quantity, insuredFee, extra, basePrice, cost } = row
+      row.totalPrice = Math.max(unitPrice * quantity + Number.parseFloat(insuredFee || 0) + Number.parseFloat(extra || 0), basePrice)
+      row.profit = row.totalPrice - cost
+      this.saveLine(row, true)
+    },
+    // 编辑
+    editOrder (row) {
+      this.currentOrder = {...row}
+      row.isEdit = true
+    },
+    // 取消
+    cancelEdit (row) {
+      let index = this.dataList.findIndex(item => item.id == row.id)
+      this.dataList[index] = this.currentOrder
+      row.isEdit = false
     },
     // 删除
     deleteOrder (row, index) {
@@ -428,7 +467,13 @@ export default {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
       }, 100)
     },
-    pageIndexChange (e) {
+    // 设置不同页展示条数
+    handleSizeChange (event) {
+      this.pagination.currentPage = 1
+      this.pagination.pageSize = event
+      this.fetchOrderList()
+    },
+    handlePageChange (e) {
       this.pagination.currentPage = e
       this.fetchOrderList()
     }

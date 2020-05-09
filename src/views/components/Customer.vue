@@ -22,9 +22,8 @@
       </el-col>
     </el-row>
     <el-row class="table-box">
-      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
-      <el-col :span="22" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-plus" @click="openDialog(true)">新增寄件公司</el-button>
+      <el-col :span="24" class="btn-action">
+        <el-button type="primary" size="mini" icon="el-icon-circle-plus-outline" @click="openDialog(true)">新增寄件公司</el-button>
         <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchUserList">刷新</el-button>
       </el-col>
       <el-table
@@ -85,9 +84,8 @@
         next-text="下一页"
         :page-sizes="[15, 30, 50]"
         :total="pagination.total"
-        @current-change="pageIndexChange"
-        @size-change="pageIndexChange"
-        hide-on-single-page	 />
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"/>
     </el-row>
     <el-dialog class="custom-dialog" :title="title" :visible.sync="dialogVisible" width="550px" destroy-on-close>
       <el-form ref="customForm" :model="form" :rules="rules" label-position="right" label-width="130px">
@@ -214,7 +212,12 @@ export default {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
       }, 100)
     },
-    pageIndexChange (e) {
+    // 设置不同页展示条数
+    handleSizeChange (event) {
+      this.pagination.currentPage = 1
+      this.pagination.pageSize = event
+    },
+    handlePageChange (e) {
       this.pagination.currentPage = e
     },
     openDialog (isNew = true, row) {

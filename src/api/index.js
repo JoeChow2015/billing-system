@@ -8,6 +8,10 @@ export default {
   saveOrder (params) {
     return ins.post('/api/save/orders', params)
   },
+  // 根据寄件公司和省份获取客户数据
+  getDetailByCC (params) {
+    return ins.post('/get/order/byName', params)
+  },
   // 删除订单
   deleteOrderById (orderId) {
     return ins.delete(`/api/del/${orderId}/order`)

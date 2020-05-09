@@ -21,13 +21,13 @@
       </el-col>
     </el-row>
     <el-row class="table-box">
-      <el-col :span="2" class="total-count">共{{pagination.total > 0 ? pagination.total : 0}}条</el-col>
-      <el-col :span="22" class="btn-action">
+      <el-col :span="24" class="btn-action">
         <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchStatisticList">刷新</el-button>
       </el-col>
       <el-table
       size="mini"
        :data="dataList"
+       border
        v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
@@ -69,9 +69,8 @@
         next-text="下一页"
         :page-sizes="[15, 30, 50]"
         :total="pagination.total"
-        @current-change="pageIndexChange"
-        @size-change="pageIndexChange"
-        hide-on-single-page	 />
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"/>
     </el-row>
   </div>
 </template>
@@ -135,7 +134,13 @@ export default {
         this.tableHeight = window.innerHeight - this.$refs.billingTable.$el.offsetTop - 212
       }, 100)
     },
-    pageIndexChange (e) {
+    // 设置不同页展示条数
+    handleSizeChange (event) {
+      this.pagination.currentPage = 1
+      this.pagination.pageSize = event
+      this.fetchStatisticList()
+    },
+    handlePageChange (e) {
       this.pagination.currentPage = e
       this.fetchStatisticList()
     }
