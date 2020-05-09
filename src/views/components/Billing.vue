@@ -18,7 +18,7 @@
       <el-col>
         <span class="label">省份</span>
         <el-select
-          v-model="filter.address"
+          v-model="filter.dest"
           clearable
           filterable
           placeholder="请选择"
@@ -321,10 +321,10 @@ export default {
         size: this.pagination.pageSize,
         sortProperties: 'id',
         sortDirection: 'desc',
-        startTime: this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
-        endTime: this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        startTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
+        endTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         company: this.filter.company,
-        dest: this.filter.description,
+        dest: this.filter.dest,
         payType: this.filter.payType
       }
     },
