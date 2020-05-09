@@ -39,8 +39,8 @@
           clearable
           placeholder="请选择">
           <el-option
-            v-for="item in PAY_TYPE"
-            :key="item.value"
+            v-for="(item, index) in PAY_TYPE"
+            :key="index"
             :label="item.label"
             :value="item.value">
           </el-option>
@@ -88,7 +88,7 @@
         <el-table-column
           label="寄件公司">
           <template slot-scope="scope">
-            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName" @change="getDetailByCC"></el-input>
+            <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName" @change="getDetailByCC(null, scope.row)"></el-input>
             <span v-else>{{ scope.row.customerName }}</span>
           </template>
         </el-table-column>
@@ -104,7 +104,7 @@
             :disabled="!scope.row.customerName"
             filterable
             placeholder="选择"
-            @change="getDetailByCC">
+            @change="getDetailByCC(null, scope.row)">
             <el-option
               v-for="item in PROVINCE"
               :key="item"
@@ -139,9 +139,10 @@
               size="mini"
               :disabled="!scope.row.isEdit"
               v-model="scope.row.priceType"
+              @change="getDetailByCC(null, scope.row)"
               placeholder="选择">
-              <el-option label="重量" :value="1"></el-option>
-              <el-option label="体积" :value="2"></el-option>
+              <el-option label="重量" value="重量"></el-option>
+              <el-option label="体积" value="体积"></el-option>
             </el-select>
           </template>
         </el-table-column>
@@ -202,8 +203,8 @@
               :disabled="!scope.row.isEdit"
               v-model="scope.row.payType">
               <el-option
-                v-for="item in PAY_TYPE"
-                :key="item.value"
+                v-for="(item, index) in PAY_TYPE"
+                :key="index"
                 :label="item.label"
                 :value="item.value">
               </el-option>
@@ -351,9 +352,9 @@ export default {
         insuredFee: '',
         unitPrice: '',
         basePrice: '',
-        priceType: 1,
+        priceType: '重量',
         extra: '',
-        payType: 1,
+        payType: '现金',
         totalPrice: '',
         cost: '',
         profit: '',
@@ -362,18 +363,18 @@ export default {
       })
     },
     // 根据寄件公司和省份获取客户数据
-    async getDetailByCC (row) {
+    async getDetailByCC (event, row) {
       const { customerName, dest } = row
-      if (customerName || dest) {
+      if (!customerName || !dest) {
         return
       }
-      // let result = await API.getDetailByCC({
-      //   name: customerName,
-      //   dest: dest
-      // })
-      // console.log(result)
-      // if (result && result.code === 1) {
-      // }
+      let result = await API.getDetailByCC(customerName, dest)
+      if (result && result.code === 1) {
+        const { basePrice, hprice, vprice } = result.data || {}
+        row.basePrice = basePrice
+        row.unitPrice = row.priceType == '重量' ? vprice : hprice
+        this.computePrice(row) // 重新校对金额
+      }
     },
     // 保存
     async saveLine (row, isCheck = false) {
@@ -394,10 +395,14 @@ export default {
     // 总金额=单价*重量/体积+保价费+附加费
     // 如果小于起步价则总金额为起步价
     // 利润等于总金额-成本 没有成本的情况下利润等于总成本
-    checkOrder (row){
+    // 计算金额
+    computePrice (row) {
       let { unitPrice, quantity, insuredFee, extra, basePrice, cost } = row
       row.totalPrice = Math.max(unitPrice * quantity + Number.parseFloat(insuredFee || 0) + Number.parseFloat(extra || 0), basePrice)
       row.profit = row.totalPrice - cost
+    },
+    checkOrder (row){
+      this.computePrice(row)
       this.saveLine(row, true)
     },
     // 编辑
