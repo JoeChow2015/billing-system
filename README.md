@@ -13,3 +13,10 @@ npm run serve
 ### Compiles and minifies for production
 ```
 npm run build
+```
+### page
+```
+![Image]
+(https://github.com/JoeChow2015/billing-system/tree/master/src/assets/images/billing01.png)
+![Image]
+(https://github.com/JoeChow2015/billing-system/tree/master/src/assets/images/billing02.png)
