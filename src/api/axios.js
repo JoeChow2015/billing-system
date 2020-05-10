@@ -13,8 +13,8 @@ const instance = axios.create({
 })
 
 instance.interceptors.response.use(
-  r => r.data && r.data.code == 1 ? Promise.resolve(r.data) : Message({
-    message: r.message,
+  r => r.data && r.data.code == 1 || r.config.responseType == 'blob' ? Promise.resolve(r.data) : Message({
+    message: r.data.message,
     showClose: true,
     type: 'error'
   }),

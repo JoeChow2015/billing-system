@@ -99,7 +99,8 @@
         </el-table-column>
         <el-table-column
          label="省份"
-         width="75">
+         width="100"
+         show-overflow-tooltip>
          <template slot-scope="scope">
            <el-select
             v-if="scope.row.isEdit"
@@ -373,11 +374,14 @@ export default {
       if (!customerName || !dest) {
         return
       }
-      let result = await API.getDetailByCC(customerName, dest)
+      let result = await API.getDetailByCC({
+        name: customerName,
+        dest: dest
+      })
       if (result && result.code === 1) {
         const { basePrice, hprice, vprice } = result.data || {}
         row.basePrice = basePrice
-        row.unitPrice = row.priceType == '重量' ? vprice : hprice
+        row.unitPrice = row.priceType == '重量' ? hprice : vprice
         this.computePrice(row) // 重新校对金额
       }
     },
