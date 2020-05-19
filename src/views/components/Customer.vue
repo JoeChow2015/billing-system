@@ -38,6 +38,7 @@
        row-key="id"
        lazy
       :load="load"
+      :row-class-name="tableRowClassName"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
        ref="billingTable">
        <!-- <el-table-column
@@ -202,6 +203,13 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    tableRowClassName({rowIndex}) {
+      if (rowIndex % 2 === 1) {
+        return '';
+      } else {
+        return 'success-row';
+      }
+    },
     // 加载更多数据
     async load(tree, treeNode, resolve) {
       let result = await API.loadMoreCustomer(tree.name)
@@ -297,6 +305,11 @@ export default {
         line-height: 40px;
         white-space: nowrap;
       }
+      .el-col-6 {
+        .el-select {
+          width: 80%;
+        }
+      }
       .el-col-10 {
         display: flex;
       }
@@ -334,6 +347,9 @@ export default {
       }
       .el-table__header .cell, .el-table__body .cell {
         padding: 0 5px;
+      }
+      .success-row {
+        background: #f0f9eb;
       }
     }
     .el-pagination {

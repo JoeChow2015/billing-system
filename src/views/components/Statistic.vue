@@ -33,6 +33,7 @@
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
+       :row-class-name="tableRowClassName"
        :height="tableHeight"
        ref="billingTable"
        @sort-change="handleSortChange">
@@ -149,6 +150,13 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    tableRowClassName({rowIndex}) {
+      if (rowIndex % 2 === 1) {
+        return '';
+      } else {
+        return 'success-row';
+      }
+    },
     // 自定义排序
     handleSortChange (event) {
       this.sortOrder.properties = event.prop
@@ -201,13 +209,14 @@ export default {
 <style lang="less">
   .the-statistic-container {
     .search-box {
+      text-align: left;
       padding: 10px 0;
       margin-right: 0 !important;
       border-bottom: 1px dashed #c4c4c4;
       display: flex;
       justify-content: flex-start;
       .el-date-editor {
-        width: 250px;
+        width: 80%;
       }
       .label {
         margin-right: 10px;
@@ -251,6 +260,9 @@ export default {
       }
       .el-table__header .cell, .el-table__body .cell {
         padding: 0 5px;
+      }
+      .success-row {
+        background: #f0f9eb;
       }
     }
     .el-pagination {
