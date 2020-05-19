@@ -79,7 +79,6 @@
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
        ref="billingTable"
-       :row-class-name="tableRowClassName"
        @sort-change="handleSortChange">
         <el-table-column
           label="寄件日期"
@@ -375,7 +374,7 @@ export default {
     },
     // 自定义排序
     handleSortChange (event) {
-      this.sortOrder.properties = event.prop.replace(/([A-Z])/g, '_$1').toLowerCase()
+      this.sortOrder.properties = event.prop.replace(/[A-Z]/g, item => `_${item.toLowerCase()}`)
       this.sortOrder.direction = event.order === 'ascending' ? 'asc' : 'desc'
       this.search()
     },

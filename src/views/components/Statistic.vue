@@ -33,7 +33,6 @@
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
-       :row-class-name="tableRowClassName"
        :height="tableHeight"
        ref="billingTable"
        @sort-change="handleSortChange">
@@ -159,7 +158,7 @@ export default {
     },
     // 自定义排序
     handleSortChange (event) {
-      this.sortOrder.properties = event.prop
+      this.sortOrder.properties = event.prop.replace(/[A-Z]/g, item => `_${item.toLowerCase()}`)
       this.sortOrder.direction = event.order === 'ascending' ? 'asc' : 'desc'
       this.search()
     },

@@ -38,7 +38,6 @@
        row-key="id"
        lazy
       :load="load"
-      :row-class-name="tableRowClassName"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
        ref="billingTable">
        <!-- <el-table-column
