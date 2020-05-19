@@ -30,7 +30,7 @@ export default {
   // },
   // 客户列表
   getUserList () {
-    return ins.get('/api/list/users')
+    return ins.get('/api/list/users/header')
   },
   // 保存客户
   saveUser (params) {
@@ -40,8 +40,12 @@ export default {
   deleteUserById (userId) {
     return ins.delete(`/api/del/${userId}/user`)
   },
+  // 加载更多数据
+  loadMoreCustomer (name) {
+    return ins.get(`/api/list/users/byName/?name=${name}`)
+  },
   // 查看统计列表
   getStatisticList (params) {
     return ins.post('/api/get/aggs/page', params)
-  },
+  }
 }

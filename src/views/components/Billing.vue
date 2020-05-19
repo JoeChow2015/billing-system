@@ -11,6 +11,7 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="yyyy-MM-dd"
+          :picker-options="pickerOptions"
           @clear="search"
           @change="search">
         </el-date-picker>
@@ -58,19 +59,19 @@
     </el-row>
     <el-row class="table-box">
       <el-col :span="24" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-circle-plus-outline" @click="newBill">插入一行</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-circle-plus-outline" @click="newBill">插入一行</el-button>
         <el-upload
           action="/api/upload"
           :on-success="uploadFileSuccess"
           :show-file-list="false">
-          <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
+          <el-button type="primary" size="medium" icon="el-icon-upload">导入对账单</el-button>
         </el-upload>
-        <el-button type="primary" size="mini" icon="el-icon-download" @click="downloadBill">导出对账单</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="search">刷新</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-download" @click="downloadBill">导出对账单</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-refresh" @click="search">刷新</el-button>
       </el-col>
       <el-table
        :data="dataList"
-       size="mini"
+       size="medium"
        border
        v-loading="loading"
        element-loading-text="拼命加载中"
@@ -83,7 +84,7 @@
           label="寄件日期"
           sortable="custom"
           prop="mailDate"
-          width="90">
+          width="100">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.mailDate"></el-input>
             <span v-else>{{ scope.row.mailDate }}</span>
@@ -165,7 +166,7 @@
         </el-table-column>
         <el-table-column
           label="重量/体积"
-          width="70">
+          width="80">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.quantity"></el-input>
             <span v-else>{{ scope.row.quantity }}</span>
@@ -213,7 +214,7 @@
         </el-table-column>
         <el-table-column
           label="支付方式"
-          width="90"
+          width="100"
           sortable="custom"
           prop="payType">
           <template slot-scope="scope">
@@ -304,7 +305,7 @@
 import moment from 'moment'
 import { PAY_TYPE, PROVINCE } from '@/utils/constant.js'
 import API from '@/api/index'
-
+const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
   name: 'Billing',
   data () {
@@ -330,6 +331,30 @@ export default {
       sortOrder: {
         properties: 'id',
         direction: 'desc'
+      },
+      pickerOptions: {
+        shortcuts: [{
+          text: '本月',
+          onClick(picker) {
+            let start = moment().startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }, {
+          text: '上月',
+          onClick(picker) {
+            let start = moment().month(moment().month() - 1).startOf('month').format(TIME_FORMAT)
+            let end = moment().month(moment().month() - 1).endOf('month').format(TIME_FORMAT)
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '最近三个月',
+          onClick(picker) {
+            let start = moment().subtract(3, 'month').startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }]
       }
     }
   },

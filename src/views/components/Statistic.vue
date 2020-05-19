@@ -11,6 +11,7 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="yyyy-MM-dd"
+          :picker-options="pickerOptions"
           @clear="search"
           @change="search">
         </el-date-picker>
@@ -22,10 +23,10 @@
     </el-row>
     <el-row class="table-box">
       <el-col :span="24" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="search">刷新</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-refresh" @click="search">刷新</el-button>
       </el-col>
       <el-table
-      size="mini"
+        size="medium"
        :data="dataList"
        border
        v-loading="loading"
@@ -48,7 +49,8 @@
           prop="name"
           label="寄件公司"
           min-width="200"
-          sortable="custom">
+          sortable="custom"
+          show-overflow-tooltip>
         </el-table-column>
         <el-table-column
           prop="num"
@@ -86,6 +88,7 @@
 import moment from 'moment'
 import { PROVINCE } from '@/utils/constant.js'
 import API from '@/api/index'
+const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 export default {
   name: 'Statistic',
@@ -112,6 +115,30 @@ export default {
       sortOrder: {
         properties: 'cost',
         direction: 'desc'
+      },
+      pickerOptions: {
+        shortcuts: [{
+          text: '本月',
+          onClick(picker) {
+            let start = moment().startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }, {
+          text: '上月',
+          onClick(picker) {
+            let start = moment().month(moment().month() - 1).startOf('month').format(TIME_FORMAT)
+            let end = moment().month(moment().month() - 1).endOf('month').format(TIME_FORMAT)
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '最近三个月',
+          onClick(picker) {
+            let start = moment().subtract(3, 'month').startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }]
       }
     }
   },
