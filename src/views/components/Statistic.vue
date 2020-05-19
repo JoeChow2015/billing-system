@@ -11,18 +11,18 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="yyyy-MM-dd"
-          @clear="fetchStatisticList"
-          @change="fetchStatisticList">
+          @clear="search"
+          @change="search">
         </el-date-picker>
       </el-col>
       <el-col :span="10">
         <span class="label">寄件公司</span>
-        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索" @keydown.enter.native="fetchStatisticList"></el-input>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索" @keydown.enter.native="search"></el-input>
       </el-col>
     </el-row>
     <el-row class="table-box">
       <el-col :span="24" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchStatisticList">刷新</el-button>
+        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="search">刷新</el-button>
       </el-col>
       <el-table
       size="mini"
@@ -33,10 +33,13 @@
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
-       ref="billingTable">
+       ref="billingTable"
+       @sort-change="handleSortChange">
        <el-table-column
           label="寄件日期"
-          idth="100">
+          idth="100"
+          prop="date"
+          sortable="custom">
           <template slot-scope="scope">
             <span >{{ scope.row.date | dateFormat }}</span>
           </template>
@@ -44,23 +47,28 @@
         <el-table-column
           prop="name"
           label="寄件公司"
-          min-width="200">
+          min-width="200"
+          sortable="custom">
         </el-table-column>
         <el-table-column
-         prop="num"
-         label="件数">
+          prop="num"
+          label="票数"
+          sortable="custom">
         </el-table-column>
         <el-table-column
           prop="price"
-          label="总金额">
+          label="总金额"
+          sortable="custom">
         </el-table-column>
         <el-table-column
           prop="cost"
-          label="总成本">
+          label="总成本"
+          sortable="custom">
         </el-table-column>
         <el-table-column
           prop="profit"
-          label="总利润">
+          label="总利润"
+          sortable="custom">
         </el-table-column>
       </el-table>
       <el-pagination
@@ -100,6 +108,10 @@ export default {
         currentPage: 1,
         pageSize: 15,
         total: null
+      },
+      sortOrder: {
+        properties: 'cost',
+        direction: 'desc'
       }
     }
   },
@@ -110,14 +122,25 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    // 自定义排序
+    handleSortChange (event) {
+      this.sortOrder.properties = event.prop
+      this.sortOrder.direction = event.order === 'ascending' ? 'asc' : 'desc'
+      this.search()
+    },
+    // 搜索
+    search () {
+      this.pagination.currentPage = 1
+      this.fetchStatisticList()
+    },
     // 获取订单列表
     async fetchStatisticList (isLoading = true) {
       this.loading = isLoading
       const params = {
         page: this.pagination.currentPage,
         size: this.pagination.pageSize,
-        sortProperties: 'cost',
-        sortDirection: 'desc',
+        sortProperties: this.sortOrder.properties,
+        sortDirection: this.sortOrder.direction,
         startTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         endTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         company: this.filter.company
