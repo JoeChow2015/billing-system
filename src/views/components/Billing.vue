@@ -11,8 +11,9 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           value-format="yyyy-MM-dd"
-          @clear="fetchOrderList"
-          @change="fetchOrderList">
+          :picker-options="pickerOptions"
+          @clear="search"
+          @change="search">
         </el-date-picker>
       </el-col>
       <el-col>
@@ -22,7 +23,7 @@
           clearable
           filterable
           placeholder="请选择"
-          @change="fetchOrderList">
+          @change="search">
           <el-option
             v-for="item in PROVINCE"
             :key="item"
@@ -33,7 +34,11 @@
       </el-col>
       <el-col>
         <span class="label">寄件公司</span>
-        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司搜索" @clear="fetchOrderList" @keydown.enter.native="fetchOrderList"></el-input>
+        <el-input v-model="filter.company" clearable filterable placeholder="输入寄件公司" @clear="search" @keydown.enter.native="search"></el-input>
+      </el-col>
+      <el-col>
+        <span class="label">运单号</span>
+        <el-input v-model="filter.orderNum" clearable filterable placeholder="输入运单号" @clear="search" @keydown.enter.native="search"></el-input>
       </el-col>
       <el-col>
         <span class="label">支付方式</span>
@@ -41,8 +46,8 @@
           v-model="filter.payType"
           clearable
           placeholder="请选择"
-          @clear="fetchOrderList"
-          @change="fetchOrderList">
+          @clear="search"
+          @change="search">
           <el-option
             v-for="(item, index) in PAY_TYPE"
             :key="index"
@@ -54,29 +59,32 @@
     </el-row>
     <el-row class="table-box">
       <el-col :span="24" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-circle-plus-outline" @click="newBill">插入一行</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-circle-plus-outline" @click="newBill">插入一行</el-button>
         <el-upload
           action="/api/upload"
           :on-success="uploadFileSuccess"
           :show-file-list="false">
-          <el-button type="primary" size="mini" icon="el-icon-upload">导入对账单</el-button>
+          <el-button type="primary" size="medium" icon="el-icon-upload">导入对账单</el-button>
         </el-upload>
-        <el-button type="primary" size="mini" icon="el-icon-download" @click="downloadBill">导出对账单</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchOrderList">刷新</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-download" @click="downloadBill">导出对账单</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-refresh" @click="search">刷新</el-button>
       </el-col>
       <el-table
        :data="dataList"
-       size="mini"
+       size="medium"
        border
        v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
-       ref="billingTable">
+       ref="billingTable"
+       @sort-change="handleSortChange">
         <el-table-column
           label="寄件日期"
-          width="90">
+          sortable="custom"
+          prop="mailDate"
+          width="100">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit" size="mini" v-model="scope.row.mailDate"></el-input>
             <span v-else>{{ scope.row.mailDate }}</span>
@@ -91,7 +99,11 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="寄件公司">
+          label="寄件公司"
+          sortable="custom"
+          prop="customerName"
+          min-width="100"
+          show-overflow-tooltip>
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.customerName" @change="getDetailByCC(null, scope.row)"></el-input>
             <span v-else>{{ scope.row.customerName }}</span>
@@ -154,7 +166,7 @@
         </el-table-column>
         <el-table-column
           label="重量/体积"
-          width="70">
+          width="80">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.quantity"></el-input>
             <span v-else>{{ scope.row.quantity }}</span>
@@ -202,7 +214,9 @@
         </el-table-column>
         <el-table-column
           label="支付方式"
-          width="65">
+          width="100"
+          sortable="custom"
+          prop="payType">
           <template slot-scope="scope">
             <el-select
               size="mini"
@@ -219,7 +233,9 @@
         </el-table-column>
         <el-table-column
           label="总金额"
-          width="80">
+          width="80"
+          sortable="custom"
+          prop="totalPrice">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.totalPrice"></el-input>
             <span v-else>{{ scope.row.totalPrice }}</span>
@@ -227,7 +243,9 @@
         </el-table-column>
         <el-table-column
           label="成本"
-          width="70">
+          width="70"
+          sortable="custom"
+          prop="cost">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.cost"></el-input>
             <span v-else>{{ scope.row.cost }}</span>
@@ -235,7 +253,9 @@
         </el-table-column>
         <el-table-column
           label="利润"
-          width="80">
+          width="80"
+          sortable="custom"
+          prop="profit">
           <template slot-scope="scope">
             <el-input v-if="scope.row.isEdit"  size="mini" v-model="scope.row.profit"></el-input>
             <span v-else>{{ scope.row.profit }}</span>
@@ -285,7 +305,7 @@
 import moment from 'moment'
 import { PAY_TYPE, PROVINCE } from '@/utils/constant.js'
 import API from '@/api/index'
-
+const TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 export default {
   name: 'Billing',
   data () {
@@ -295,6 +315,7 @@ export default {
       filter: {
         date: [],
         company: '',
+        orderNum: '',
         dest: '',
         payType: ''
       },
@@ -306,6 +327,34 @@ export default {
         currentPage: 1,
         pageSize: 15,
         total: null
+      },
+      sortOrder: {
+        properties: 'id',
+        direction: 'desc'
+      },
+      pickerOptions: {
+        shortcuts: [{
+          text: '本月',
+          onClick(picker) {
+            let start = moment().startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }, {
+          text: '上月',
+          onClick(picker) {
+            let start = moment().month(moment().month() - 1).startOf('month').format(TIME_FORMAT)
+            let end = moment().month(moment().month() - 1).endOf('month').format(TIME_FORMAT)
+            picker.$emit('pick', [start, end]);
+          }
+        }, {
+          text: '最近三个月',
+          onClick(picker) {
+            let start = moment().subtract(3, 'month').startOf('month').format(TIME_FORMAT)
+            let end = moment().format(TIME_FORMAT)
+            picker.$emit('pick', [start, end])
+          }
+        }]
       }
     }
   },
@@ -316,15 +365,27 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    // 自定义排序
+    handleSortChange (event) {
+      this.sortOrder.properties = event.prop.replace(/([A-Z])/g, '_$1').toLowerCase()
+      this.sortOrder.direction = event.order === 'ascending' ? 'asc' : 'desc'
+      this.search()
+    },
+    // 搜索
+    search (isLoading = true) {
+      this.pagination.currentPage = 1
+      this.fetchOrderList(isLoading)
+    },
     postParams () {
       return {
         page: this.pagination.currentPage,
         size: this.pagination.pageSize,
-        sortProperties: 'id',
-        sortDirection: 'desc',
+        sortProperties: this.sortOrder.properties,
+        sortDirection: this.sortOrder.direction,
         startTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[0]).startOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         endTime: this.filter.date && this.filter.date.length > 1 ? moment(this.filter.date[1]).endOf('day').format('YYYY-MM-DD HH:mm:ss') : '',
         company: this.filter.company,
+        orderNum: this.filter.orderNum,
         dest: this.filter.dest,
         payType: this.filter.payType
       }
@@ -395,7 +456,7 @@ export default {
           type: 'success'
         })
         row.isEdit = false
-        this.fetchOrderList(false)
+        this.search(false)
       }
     },
     // 核对账单
@@ -441,7 +502,7 @@ export default {
             type: 'success'
           })
           row.isEdit = false
-          this.fetchOrderList(false)
+          this.search(false)
         }
       })
     },
@@ -451,13 +512,13 @@ export default {
         message: '账单导入成功！',
         type: 'success'
       })
-      this.fetchOrderList()
+      this.search(false)
     },
     // 导出对账单
     async downloadBill () {
       let params = this.postParams()
       let result = await API.downloadBill(params)
-      let blob = new Blob([result]);
+      let blob = new Blob([result]) // 字符内容转变成blob对象
       if (window.navigator.msSaveOrOpenBlob) {
         navigator.msSaveBlob(blob, `对账单_${new Date().getTime()}.xlsx`);
       } else {

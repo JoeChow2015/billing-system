@@ -23,27 +23,33 @@
     </el-row>
     <el-row class="table-box">
       <el-col :span="24" class="btn-action">
-        <el-button type="primary" size="mini" icon="el-icon-circle-plus-outline" @click="openDialog(true)">新增寄件公司</el-button>
-        <el-button type="primary" size="mini" icon="el-icon-refresh" @click="fetchUserList">刷新</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-circle-plus-outline" @click="openDialog(true)">新增寄件公司</el-button>
+        <el-button type="primary" size="medium" icon="el-icon-refresh" @click="fetchUserList">刷新</el-button>
       </el-col>
       <el-table
        :data="tableListComputed"
-       size="mini"
+       size="medium"
        border
        v-loading="loading"
        element-loading-text="拼命加载中"
        element-loading-spinner="el-icon-loading"
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
+       row-key="id"
+       lazy
+      :load="load"
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
        ref="billingTable">
-       <el-table-column
+       <!-- <el-table-column
           prop="id"
           label="ID"
           width="70">
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column
           prop="name"
           label="寄件公司"
+          sortable
+          show-overflow-tooltip
           min-width="200">
         </el-table-column>
         <el-table-column
@@ -116,8 +122,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
-        <el-button size="mini" type="primary" @click="save(true)">保存</el-button>
+        <el-button size="medium" @click="dialogVisible = false">取 消</el-button>
+        <el-button size="medium" type="primary" @click="save(true)">保存</el-button>
         <!-- <el-button size="mini" type="primary" @click="save(false)">保存并新增</el-button> -->
       </div>
     </el-dialog>
@@ -196,14 +202,23 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    // 加载更多数据
+    async load(tree, treeNode, resolve) {
+      let result = await API.loadMoreCustomer(tree.name)
+      if (result && result.code === 1) {
+        let data = (result.data || []).filter(item => item.id != tree.id)
+        resolve(data)
+      }
+    },
     // 获取客户列表
-    async fetchUserList () {
-      const params = {}
-      let result = await API.getUserList(params)
+    async fetchUserList (isLoading = true) {
+      this.loading = isLoading
+      let result = await API.getUserList()
       if (result && result.code === 1) {
         this.dataList = result.data || []
         this.pagination.total = this.dataList.length
       }
+      this.loading = false
     },
     getTableHeight () {
       setTimeout(() => {
@@ -238,7 +253,7 @@ export default {
               message: this.form.id ? '编辑客户成功！' : '新增客户成功！',
               type: 'success'
             })
-            this.fetchUserList()
+            this.fetchUserList(false)
             this.$refs.customForm.resetFields()
             this.dialogVisible = !onlySave
           }
@@ -260,7 +275,7 @@ export default {
             message: '删除客户成功！',
             type: 'success'
           })
-          this.fetchUserList()
+          this.fetchUserList(false)
         }
       })
     }
