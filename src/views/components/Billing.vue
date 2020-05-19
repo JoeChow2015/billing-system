@@ -79,6 +79,7 @@
        header-cell-class-name="table-header-custom"
        :height="tableHeight"
        ref="billingTable"
+       :row-class-name="tableRowClassName"
        @sort-change="handleSortChange">
         <el-table-column
           label="寄件日期"
@@ -365,6 +366,13 @@ export default {
     this.getTableHeight()
   },
   methods: {
+    tableRowClassName({rowIndex}) {
+      if (rowIndex % 2 === 1) {
+        return '';
+      } else {
+        return 'success-row';
+      }
+    },
     // 自定义排序
     handleSortChange (event) {
       this.sortOrder.properties = event.prop.replace(/([A-Z])/g, '_$1').toLowerCase()
@@ -611,6 +619,9 @@ export default {
       }
       .el-table__header .cell, .el-table__body .cell {
         padding: 0 5px;
+      }
+      .success-row {
+        background: #f0f9eb;
       }
     }
     .el-pagination {
